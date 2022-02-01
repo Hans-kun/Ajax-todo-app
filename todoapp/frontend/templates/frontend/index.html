@@ -1,129 +1,228 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>To Do App</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-F3w7mX95PdgyTmZZMECAngseQB83DfGTowi0iMjiWaeVhAn4FJkqJByhZMI3AhiU" crossorigin="anonymous">
-    <link rel="stylesheet" href="{% static 'index.css' %}">
-</head>
-<body>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-F3w7mX95PdgyTmZZMECAngseQB83DfGTowi0iMjiWaeVhAn4FJkqJByhZMI3AhiU"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="{% static 'index.css' %}" />
+  </head>
+  <body>
     <section class="vh-100 gradient-custom-2">
-        <div class="container py-5 h-100">
-          <div class="row d-flex justify-content-center align-items-center h-100">
-            <div class="col col-xl-10">
-      
-              <div class="card" style="border-radius: 15px;">
-                <div class="card-body p-5">
-      
-                  <h6 class="mb-3">Awesome Todo List</h6>
-      
-                  <form class="d-flex justify-content-center align-items-center mb-4">
-                    <div class="form-outline flex-fill">
-                      <input type="text" id="form1" class="form-control form-control-lg mt-2" />
-                      <label class="form-label" for="form1">What do you need to do today?</label>
-                    </div>
-                    <button type="submit" class="btn btn-primary btn-lg mb-4 ms-2 ">Add</button>
-                  </form>
-                  <div id="list-wrapper">
-                    <ul class="list-group mb-0">
-                      <li class="list-group-item d-flex justify-content-between align-items-center border-start-0 border-top-0 border-end-0 border-bottom rounded-0 mb-2">
+      <div class="container py-5 h-100">
+        <div class="row d-flex justify-content-center align-items-center h-100">
+          <div class="col col-xl-10">
+            <div class="card" style="border-radius: 15px">
+              <div class="card-body p-5">
+                <h6 class="mb-3">Awesome Todo List</h6>
+
+                <form
+                  id="form-wrapper"
+                  class="d-flex justify-content-center align-items-center mb-4"
+                >
+                  <div class="form-outline flex-fill">
+                    <input
+                      type="text"
+                      id="form1"
+                      class="form-control form-control-lg mt-2"
+                    />
+                    <label class="form-label" for="form1"
+                      >What do you need to do today?</label
+                    >
+                  </div>
+                  <button
+                    type="submit"
+                    class="btn btn-primary btn-lg mb-4 ms-2"
+                  >
+                    Add
+                  </button>
+                </form>
+                <div id="list-wrapper">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <script>
+      function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== "") {
+          const cookies = document.cookie.split(";");
+          for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) === name + "=") {
+              cookieValue = decodeURIComponent(
+                cookie.substring(name.length + 1)
+              );
+              break;
+            }
+          }
+        }
+        return cookieValue;
+      }
+      const csrftoken = getCookie("csrftoken");
+      // Todo list body
+      buildlist();
+      let activeItem = null
+      // list_snapshot = []
+
+      function buildlist() {
+        let wrapper = document.getElementById("list-wrapper");
+        wrapper.innerHTML = "";
+
+        let url = "http://127.0.0.1:8000/api/todo/";
+
+        fetch(url)
+          .then((resp) => resp.json())
+          .then(function (data) {
+            console.log("data", data);
+
+            let list = data;
+            for (let i in list) {
+              let item = `
+                <ul class="list-group mb-0">
+                      <li id= "data-row-${list[i].id}" class="list-group-item d-flex justify-content-between align-items-center border-start-0 border-top-0 border-end-0 border-bottom rounded-0 mb-2">
                         <div class="d-flex align-items-center">
-                          <input class="form-check-input me-2" type="checkbox" value="" aria-label="..." />
-                          Cras justo odio
+                          <label for='done'>
+                          <input id="done"class="form-check-input me-2 check" type="checkbox" value="yes" ${list[i].completed === true ? 'checked' : ''} />
+                          </label>
+                          ${
+                            list[i].completed === true ?
+                            `<strike id='itemTitle__${list[i].id}'>${list[i].title}</strike>` :
+                            `<span id='itemTitle__${list[i].id}'>${list[i].title}</span>`
+                          }
                         </div>
                         <div class="d-flex flex-row justify-content-end ml-5">
-                          <a href="#!" class="text-info " data-mdb-toggle="tooltip" title="Edit todo">
+                          <a href="#!" class="text-info edit " data-mdb-toggle="tooltip" title="Edit todo">
                             <i class="fas fa-pencil-alt me-3"></i>
                           </a>
-                          <a href="#!" data-mdb-toggle="tooltip" title="Remove item">
+                          <a href="#!" class="delete" data-mdb-toggle="tooltip" title="Remove item">
                             <i class="fas fa-times text-primary"></i>
                           </a>
                         </div>
                       </li>
-                      <li class="list-group-item d-flex d-flex justify-content-between align-items-center border-start-0 border-top-0 border-end-0 border-bottom rounded-0 mb-2">
-                        <div class="d-flex align-items-center">
-                          <input class="form-check-input me-2" type="checkbox" value="" aria-label="..." checked />
-                          <s>Dapibus ac facilisis in</s>
-                        </div>
-                        <a href="#!" data-mdb-toggle="tooltip" title="Remove item">
-                          <i class="fas fa-times text-primary"></i>
-                        </a>
-                      </li>
-                      <li class="list-group-item d-flex d-flex justify-content-between align-items-center border-start-0 border-top-0 border-end-0 border-bottom rounded-0 mb-2">
-                        <div class="d-flex align-items-center">
-                          <input class="form-check-input me-2" type="checkbox" value="" aria-label="..." />
-                          Morbi leo risus
-                        </div>
-                        <a href="#!" data-mdb-toggle="tooltip" title="Remove item">
-                          <i class="fas fa-times text-primary"></i>
-                        </a>
-                      </li>
-                      <li class="list-group-item d-flex d-flex justify-content-between align-items-center border-start-0 border-top-0 border-end-0 border-bottom rounded-0 mb-2">
-                        <div class="d-flex align-items-center">
-                          <input class="form-check-input me-2" type="checkbox" value="" aria-label="..." />
-                          Porta ac consectetur ac
-                        </div>
-                        <a href="#!" data-mdb-toggle="tooltip" title="Remove item">
-                          <i class="fas fa-times text-primary"></i>
-                        </a>
-                      </li>
-                      <li class="list-group-item d-flex d-flex justify-content-between align-items-center border-start-0 border-top-0 border-end-0 border-bottom rounded-0 mb-0">
-                        <div class="d-flex align-items-center">
-                          <input class="form-check-input me-2" type="checkbox" value="" aria-label="..." checked />
-                          Vestibulum at eros
-                        </div>
-                        <a href="#!" data-mdb-toggle="tooltip" title="Remove item">
-                          <i class="fas fa-times text-primary"></i>
-                        </a>
-                      </li>
-                      <li class="list-group-item d-flex justify-content-between align-items-center border-start-0 border-top-0 border-end-0 border-bottom rounded-0 mb-2">
-                        <div class="d-flex align-items-center">
-                          <input class="form-check-input me-2" type="checkbox" value="" aria-label="..." />
-                          Morbi leo risus
-                        </div>
-                        <a href="#!" data-mdb-toggle="tooltip" title="Remove item">
-                          <i class="fas fa-times text-primary"></i>
-                        </a>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-      
-            </div>
-          </div>
-        </div>
-    </section>
-    <script>
+                </ul>
+            `;
+              wrapper.innerHTML += item;
+            }
+            for (let i in list) {
+              let editBtn = document.getElementsByClassName("edit")[i];
+              let deleteBtn = document.getElementsByClassName('delete')[i];
+              let checkedBtn = document.getElementsByClassName('check')[i];
 
-      buildlist()
 
-      function buildlist(){
-        let wrapper = document.getElementById('list-wrapper')
+              editBtn.addEventListener("click", function () {
+                editItem(list[i]);
+              });
+              deleteBtn.addEventListener("click", function () {
+                deleteItem(list[i]);
+              });
+              checkedBtn.addEventListener("click", function () {
+                finished(list[i]);
+              });
+            }
+          });
+      }
+      // Post item 
+      let form = document.getElementById("form-wrapper");
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        if (activeItem != null) {
+          updateItem()
+          return
+        } else {
+          let url = "http://127.0.0.1:8000/api/todo/";
+          let title = document.getElementById("form1").value;
+            fetch(url, {
+              method: "POST",
+              headers: {
+                "Content-type": "application/json",
+                "X-CSRFToken": csrftoken,
+              },
+              body: JSON.stringify({ title: title }),
+            })
+            .then((response) => {
+              buildlist();
+              document.getElementById("form-wrapper").reset();
+            });
+        }
+      });
+      // edit and update item
+      function editItem(item) {
+        // console.log("item clicked", item);
+        activeItem = item
+        document.getElementById('form1').value = activeItem.title
+      }
 
-        let url = 'http://127.0.0.1:8000/api/todo/'
-
-        fetch(url)
-        .then((resp) => resp.json())
-        .then(function(data){
-          console.log(data)
-
-          let list = data
-          for (let i in list){
-            
-            var item = `
-            
-            
-            `
-
-          }
+      function updateItem () {
+        // console.log('activeItem:' , activeItem, activeItem.id)
+        let title = document.getElementById("form1").value;
+        let url = `http://127.0.0.1:8000/api/tododetail/${activeItem.id}/`;
+        fetch(url, {
+          method: "PATCH",
+          headers: {
+            "Content-type": "application/json",
+            "X-CSRFToken": csrftoken,
+          },
+          body: JSON.stringify({ title: title }),
+        }).then(_ => {
+          // buildlist()
+          document.getElementById(`itemTitle__${activeItem.id}`).innerText = title
+          document.getElementById("form1").value = ''
+          activeItem = null
         })
-      };
+      }
+      // delete Item
+      function deleteItem(item) {
+        console.log('delete button clicked')
+        let url = `http://127.0.0.1:8000/api/tododetail/${item.id}/`;
+        fetch(url, {
+          method: "DELETE",
+          headers: {
+            "Content-type": "application/json",
+            "X-CSRFToken": csrftoken,
+          },
+        }).then(_ => {
+          buildlist()
+        })
+      }
+      // Tick and crossout an item that has been completed
+      function finished(item){
+        console.log('finished')
+        item.completed = !item.completed
+        let url = `http://127.0.0.1:8000/api/tododetail/${item.id}/`;
+        fetch(url, {
+          method: "PATCH",
+          headers: {
+            "Content-type": "application/json",
+            "X-CSRFToken": csrftoken,
+          },
+          body: JSON.stringify({'title': item.title, 'completed': item.completed})
+        }).then(_ => {
+          buildlist()
+        })
+      }
     </script>
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.1/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-/bQdsTh/da6pkI1MST/rWKFNjaCP5gBSY4sEBT38Q/9RBh9AH40zEOg7Hlq2THRZ" crossorigin="anonymous"></script>
-</body>
+    <link
+      rel="stylesheet"
+      href="https://use.fontawesome.com/releases/v5.7.1/css/all.css"
+      integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-/bQdsTh/da6pkI1MST/rWKFNjaCP5gBSY4sEBT38Q/9RBh9AH40zEOg7Hlq2THRZ"
+      crossorigin="anonymous"
+    ></script>
+  </body>
 </html>

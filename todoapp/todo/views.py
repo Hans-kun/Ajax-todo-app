@@ -40,12 +40,13 @@ class DetailView(APIView):
         serializer = TodoListSerializer(todo)
         return Response(serializer.data)
 
-    def put(self, request, id):
+    def patch(self, request, id):
         todo = self.get_object(id)
         serializer = TodoListSerializer(todo, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
+        print(serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, id):
